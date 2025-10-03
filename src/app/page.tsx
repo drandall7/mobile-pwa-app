@@ -14,7 +14,7 @@ import { UserProfile } from '@/components/UserProfile';
 import { ConnectionTest } from '@/components/ConnectionTest';
 import { PushNotifications } from '@/components/PushNotifications';
 import { PWAStatus } from '@/components/PWAStatus';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/lib/context/AuthContext';
 
 export default function Home() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
