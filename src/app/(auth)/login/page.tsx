@@ -133,7 +133,7 @@ export default function LoginPage() {
       router.push('/feed');
     } catch (error) {
       console.error('Login error:', error);
-      setSubmitError(error instanceof Error ? error.message : 'Login failed. Please try again.');
+      setSubmitError('Invalid phone number or password');
     } finally {
       setIsLoading(false);
     }
@@ -180,7 +180,7 @@ export default function LoginPage() {
                   <input
                     id="phone"
                     type="tel"
-                    placeholder="(555) 123-4567"
+                    placeholder="+1 (555) 555-5555"
                     value={formData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
                     onBlur={() => handleFieldBlur('phone')}
@@ -265,13 +265,20 @@ export default function LoginPage() {
               </button>
             </form>
 
-            {/* Register Link */}
-            <div className="mt-6 text-center">
+            {/* Links */}
+            <div className="mt-6 space-y-3 text-center">
               <a
                 href="/register"
-                className="text-sm text-gray-600 dark:text-[#a0a0a0] hover:text-[#ff8c42] dark:hover:text-[#ff8c42] transition-colors duration-300"
+                className="block text-sm text-gray-600 dark:text-[#a0a0a0] hover:text-[#ff8c42] dark:hover:text-[#ff8c42] transition-colors duration-300"
               >
-                Don&apos;t have an account? Create one
+                Don&apos;t have an account? Sign up
+              </a>
+              <a
+                href="#"
+                className="block text-sm text-gray-500 dark:text-[#666666] hover:text-[#ff8c42] dark:hover:text-[#ff8c42] transition-colors duration-300"
+                onClick={(e) => e.preventDefault()}
+              >
+                Forgot password?
               </a>
             </div>
           </div>
