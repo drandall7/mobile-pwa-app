@@ -284,8 +284,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(response, { status: 200 });
 
-  } catch (error) {
-    console.error('Unexpected error in login route:', error);
+    } catch (err) {
+      console.error('Unexpected error in login route:', err);
     
     return NextResponse.json<ErrorResponse>(
       { 

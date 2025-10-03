@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { User } from '@/types/database';
 import { formatPhoneNumber } from '@/lib/utils/validation';
@@ -30,7 +30,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const supabase = createClient();
 
   // Check for existing session and fetch user profile
-  const checkSession = async () => {
+  const checkSession = useCallback(async () => {
     try {
       const { data: { session }, error } = await supabase.auth.getSession();
       
@@ -51,10 +51,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase]);
 
   // Fetch user profile from users table
-  const fetchUserProfile = async (userId: string) => {
+  const fetchUserProfile = useCallback(async (userId: string) => {
     try {
       const { data: profile, error } = await supabase
         .from('users')
@@ -75,7 +75,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       console.error('Profile fetch error:', error);
       setUser(null);
     }
-  };
+  }, [supabase]);
 
   // Sign in function
   const signIn = async (phoneNumber: string, password: string) => {
@@ -211,7 +211,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     );
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [checkSession, fetchUserProfile]);
 
   const value: AuthContextType = {
     user,

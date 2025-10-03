@@ -392,8 +392,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(response, { status: 201 });
 
-  } catch (error) {
-    console.error('Unexpected error in register route:', error);
+    } catch (err) {
+      console.error('Unexpected error in register route:', err);
     
     return NextResponse.json<ErrorResponse>(
       { 

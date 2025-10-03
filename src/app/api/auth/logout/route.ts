@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
 // Response types
@@ -14,7 +14,7 @@ interface ErrorResponse {
 }
 
 // Main handler
-export async function POST(request: NextRequest): Promise<NextResponse> {
+export async function POST(): Promise<NextResponse> {
   try {
     // Create Supabase client
     const supabase = await createClient();

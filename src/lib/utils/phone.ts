@@ -98,7 +98,7 @@ export function parsePhoneToE164(input: string): string {
   }
 
   // Remove all non-numeric characters except +
-  let cleaned = input.replace(/[^\d+]/g, '');
+  const cleaned = input.replace(/[^\d+]/g, '');
   
   // If it already starts with +, return as-is
   if (cleaned.startsWith('+')) {
