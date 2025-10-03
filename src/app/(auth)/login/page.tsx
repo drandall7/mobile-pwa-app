@@ -4,9 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/context/AuthContext';
 import { 
-  formatPhoneAsUserTypes, 
-  parsePhoneToE164, 
-  getPhonePlaceholder 
+  formatPhoneAsUserTypes
 } from '@/lib/utils/phone';
 import { 
   validatePhoneNumber, 
@@ -14,11 +12,13 @@ import {
 } from '@/lib/utils/validation';
 
 interface FormData {
+  countryCode: string;
   phone: string;
   password: string;
 }
 
 interface FormErrors {
+  countryCode?: string;
   phone?: string;
   password?: string;
 }
@@ -28,6 +28,7 @@ export default function LoginPage() {
   const { signIn } = useAuth();
   
   const [formData, setFormData] = useState<FormData>({
+    countryCode: '+1',
     phone: '',
     password: '',
   });
@@ -120,10 +121,10 @@ export default function LoginPage() {
     setSubmitError('');
 
     try {
-      // Convert phone to E.164 format
-      const phoneE164 = parsePhoneToE164(formData.phone);
+      // Combine country code and phone number
+      const fullPhone = formData.countryCode + formData.phone.replace(/\D/g, '');
       
-      await signIn(phoneE164, formData.password);
+      await signIn(fullPhone, formData.password);
       
       // Redirect to feed on success
       router.push('/feed');
@@ -155,20 +156,39 @@ export default function LoginPage() {
                 <label className="block text-sm font-medium text-gray-700 dark:text-[#e0e0e0] mb-1" htmlFor="phone">
                   Phone Number*
                 </label>
-                <input
-                  id="phone"
-                  type="tel"
-                  placeholder={getPhonePlaceholder()}
-                  value={formData.phone}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
-                  onBlur={() => handleFieldBlur('phone')}
-                  className={`w-full h-12 px-4 bg-white dark:bg-[#0a0a0a] border rounded-lg text-gray-900 dark:text-[#e0e0e0] placeholder-gray-400 dark:placeholder-[#666666] focus:outline-none focus:ring-2 focus:ring-[#ff8c42] focus:border-[#ff8c42] transition-all duration-300 ${
-                    errors.phone 
-                      ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
-                      : 'border-gray-300 dark:border-[#2a2a2a]'
-                  }`}
-                  disabled={isLoading}
-                />
+                <div className="flex gap-2">
+                  <select
+                    value={formData.countryCode}
+                    onChange={(e) => handleInputChange('countryCode', e.target.value)}
+                    className="h-12 px-3 bg-white dark:bg-[#0a0a0a] border border-gray-300 dark:border-[#2a2a2a] rounded-lg text-gray-900 dark:text-[#e0e0e0] focus:outline-none focus:ring-2 focus:ring-[#ff8c42] focus:border-[#ff8c42] transition-all duration-300"
+                    disabled={isLoading}
+                  >
+                    <option value="+1">🇺🇸 +1</option>
+                    <option value="+44">🇬🇧 +44</option>
+                    <option value="+49">🇩🇪 +49</option>
+                    <option value="+33">🇫🇷 +33</option>
+                    <option value="+81">🇯🇵 +81</option>
+                    <option value="+86">🇨🇳 +86</option>
+                    <option value="+91">🇮🇳 +91</option>
+                    <option value="+55">🇧🇷 +55</option>
+                    <option value="+61">🇦🇺 +61</option>
+                    <option value="+39">🇮🇹 +39</option>
+                  </select>
+                  <input
+                    id="phone"
+                    type="tel"
+                    placeholder="(555) 123-4567"
+                    value={formData.phone}
+                    onChange={(e) => handleInputChange('phone', e.target.value)}
+                    onBlur={() => handleFieldBlur('phone')}
+                    className={`flex-1 h-12 px-4 bg-white dark:bg-[#0a0a0a] border rounded-lg text-gray-900 dark:text-[#e0e0e0] placeholder-gray-400 dark:placeholder-[#666666] focus:outline-none focus:ring-2 focus:ring-[#ff8c42] focus:border-[#ff8c42] transition-all duration-300 ${
+                      errors.phone 
+                        ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
+                        : 'border-gray-300 dark:border-[#2a2a2a]'
+                    }`}
+                    disabled={isLoading}
+                  />
+                </div>
                 {errors.phone && (
                   <div className="mt-1 flex items-center text-sm text-red-500">
                     <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
