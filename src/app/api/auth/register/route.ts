@@ -204,6 +204,19 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const normalizedPhone = parsePhoneNumber(phone_number);
     const normalizedEmail = email?.trim() || null;
 
+    // Check environment variables
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      console.error('Missing Supabase environment variables');
+      return NextResponse.json<ErrorResponse>(
+        { 
+          error: 'Server configuration error',
+          details: 'Supabase configuration is missing',
+          code: 'CONFIG_ERROR'
+        },
+        { status: 500 }
+      );
+    }
+
     // Create Supabase client
     const supabase = await createClient();
 
@@ -392,18 +405,24 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(response, { status: 201 });
 
-    } catch (err) {
-      console.error('Unexpected error in register route:', err);
-    
-    return NextResponse.json<ErrorResponse>(
-      { 
-        error: 'Internal server error',
-        details: 'An unexpected error occurred',
-        code: 'INTERNAL_ERROR'
-      },
-      { status: 500 }
-    );
-  }
+         } catch (err) {
+           console.error('Unexpected error in register route:', err);
+           
+           // Log more details for debugging
+           if (err instanceof Error) {
+             console.error('Error message:', err.message);
+             console.error('Error stack:', err.stack);
+           }
+           
+           return NextResponse.json<ErrorResponse>(
+             { 
+               error: 'Internal server error',
+               details: err instanceof Error ? err.message : 'An unexpected error occurred',
+               code: 'INTERNAL_ERROR'
+             },
+             { status: 500 }
+           );
+         }
 }
 
 // Handle unsupported methods
