@@ -72,7 +72,9 @@ export default function LoginPage() {
 
     switch (field) {
       case 'phone':
-        const phoneValidation = validatePhoneNumber(value);
+        // Combine country code and phone number for validation
+        const fullPhone = formData.countryCode + value.replace(/\D/g, '');
+        const phoneValidation = validatePhoneNumber(fullPhone);
         error = phoneValidation.valid ? undefined : phoneValidation.message;
         break;
       case 'password':
@@ -93,8 +95,9 @@ export default function LoginPage() {
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
-    // Validate phone
-    const phoneValidation = validatePhoneNumber(formData.phone);
+    // Validate phone (combine with country code)
+    const fullPhone = formData.countryCode + formData.phone.replace(/\D/g, '');
+    const phoneValidation = validatePhoneNumber(fullPhone);
     if (!phoneValidation.valid) {
       newErrors.phone = phoneValidation.message;
     }
