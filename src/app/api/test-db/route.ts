@@ -19,7 +19,7 @@ export async function GET() {
     console.log('Supabase client created');
 
     // Test database connection by checking if users table exists
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('users')
       .select('count')
       .limit(1);

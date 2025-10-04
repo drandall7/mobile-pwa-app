@@ -146,7 +146,7 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
       
       // Try alternative approach if PostGIS function fails
       try {
-        const { data: altUpdatedProfile, error: altUpdateError } = await supabase
+        const { error: altUpdateError } = await supabase
           .from('users')
           .update({
             home_location_name: locationName.trim(),
@@ -165,7 +165,7 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
         };
 
         return NextResponse.json(response, { status: 200 });
-      } catch (altError) {
+      } catch {
         return NextResponse.json<ErrorResponse>(
           { 
             error: 'Failed to update location',

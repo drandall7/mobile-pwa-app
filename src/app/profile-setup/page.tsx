@@ -124,7 +124,7 @@ export default function ProfileSetupPage() {
           error: result.error || 'Failed to detect location',
         });
       }
-    } catch (error) {
+    } catch {
       setLocationData({
         state: LocationState.ERROR,
         name: null,
