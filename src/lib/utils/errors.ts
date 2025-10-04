@@ -17,7 +17,7 @@ export interface ErrorInfo {
   userMessage: string;
   actionable: string;
   retryable: boolean;
-  originalError?: any;
+  originalError?: unknown;
   context?: string;
 }
 
@@ -78,7 +78,7 @@ const PHONE_ERROR_MESSAGES = {
 };
 
 // Log error to console with context
-export function logError(errorInfo: ErrorInfo, additionalContext?: any): void {
+export function logError(errorInfo: ErrorInfo, additionalContext?: unknown): void {
   const timestamp = new Date().toISOString();
   const logData = {
     timestamp,
@@ -103,21 +103,24 @@ export function logError(errorInfo: ErrorInfo, additionalContext?: any): void {
 }
 
 // Detect error type from various error sources
-export function detectErrorType(error: any, context?: string): ErrorType {
+export function detectErrorType(error: unknown, context?: string): ErrorType {
   if (!error) return ErrorType.UNKNOWN;
 
-  const errorString = error.toString().toLowerCase();
-  const errorMessage = error.message?.toLowerCase() || '';
+  const errorString = String(error).toLowerCase();
+  const errorMessage = (error && typeof error === 'object' && 'message' in error) 
+    ? String((error as { message: unknown }).message).toLowerCase() 
+    : '';
 
   // Network errors
+  const errorObj = error as Record<string, unknown>;
   if (
     errorString.includes('network') ||
     errorString.includes('fetch') ||
     errorString.includes('connection') ||
     errorString.includes('timeout') ||
-    error.code === 'NETWORK_ERROR' ||
-    error.code === 'TIMEOUT' ||
-    (error.status >= 500 && error.status < 600)
+    errorObj.code === 'NETWORK_ERROR' ||
+    errorObj.code === 'TIMEOUT' ||
+    (typeof errorObj.status === 'number' && errorObj.status >= 500 && errorObj.status < 600)
   ) {
     return ErrorType.NETWORK;
   }
@@ -128,10 +131,10 @@ export function detectErrorType(error: any, context?: string): ErrorType {
     errorString.includes('forbidden') ||
     errorString.includes('authentication') ||
     errorString.includes('session') ||
-    error.status === 401 ||
-    error.status === 403 ||
-    error.code === 'AUTH_ERROR' ||
-    error.code === 'SESSION_EXPIRED'
+    errorObj.status === 401 ||
+    errorObj.status === 403 ||
+    errorObj.code === 'AUTH_ERROR' ||
+    errorObj.code === 'SESSION_EXPIRED'
   ) {
     return ErrorType.AUTHENTICATION;
   }
@@ -141,8 +144,8 @@ export function detectErrorType(error: any, context?: string): ErrorType {
     errorString.includes('permission') ||
     errorString.includes('denied') ||
     errorString.includes('blocked') ||
-    error.name === 'NotAllowedError' ||
-    error.name === 'PermissionDeniedError'
+    errorObj.name === 'NotAllowedError' ||
+    errorObj.name === 'PermissionDeniedError'
   ) {
     return ErrorType.PERMISSION;
   }
@@ -152,8 +155,8 @@ export function detectErrorType(error: any, context?: string): ErrorType {
     context?.includes('phone') ||
     errorString.includes('phone') ||
     errorMessage.includes('phone') ||
-    error.code === 'INVALID_PHONE' ||
-    error.code === 'PHONE_ALREADY_EXISTS'
+    errorObj.code === 'INVALID_PHONE' ||
+    errorObj.code === 'PHONE_ALREADY_EXISTS'
   ) {
     return ErrorType.PHONE;
   }
@@ -163,8 +166,8 @@ export function detectErrorType(error: any, context?: string): ErrorType {
     errorString.includes('validation') ||
     errorString.includes('invalid') ||
     errorString.includes('required') ||
-    error.status === 400 ||
-    error.code === 'VALIDATION_ERROR'
+    errorObj.status === 400 ||
+    errorObj.code === 'VALIDATION_ERROR'
   ) {
     return ErrorType.VALIDATION;
   }
@@ -173,9 +176,9 @@ export function detectErrorType(error: any, context?: string): ErrorType {
   if (
     errorString.includes('not found') ||
     errorString.includes('does not exist') ||
-    error.status === 404 ||
-    error.code === 'NOT_FOUND' ||
-    error.code === 'PROFILE_NOT_FOUND'
+    errorObj.status === 404 ||
+    errorObj.code === 'NOT_FOUND' ||
+    errorObj.code === 'PROFILE_NOT_FOUND'
   ) {
     return ErrorType.DATA;
   }
@@ -185,7 +188,7 @@ export function detectErrorType(error: any, context?: string): ErrorType {
 
 // Create error info object
 export function createErrorInfo(
-  error: any,
+  error: unknown,
   context?: string,
   customUserMessage?: string
 ): ErrorInfo {
@@ -213,7 +216,9 @@ export function createErrorInfo(
 
   const errorInfo: ErrorInfo = {
     type,
-    message: error.message || error.toString(),
+    message: (error && typeof error === 'object' && 'message' in error) 
+      ? String((error as { message: unknown }).message)
+      : String(error),
     userMessage,
     actionable,
     retryable: baseError.retryable,
@@ -228,9 +233,10 @@ export function createErrorInfo(
 }
 
 // Get phone-specific error details
-function getPhoneSpecificError(error: any): { message: string; actionable: string } {
-  const errorMessage = error.message?.toLowerCase() || '';
-  const errorCode = error.code || '';
+function getPhoneSpecificError(error: unknown): { message: string; actionable: string } {
+  const errorObj = error as Record<string, unknown>;
+  const errorMessage = (errorObj.message ? String(errorObj.message) : '').toLowerCase();
+  const errorCode = errorObj.code ? String(errorObj.code) : '';
 
   if (
     errorMessage.includes('already') ||
@@ -294,9 +300,10 @@ function getPhoneSpecificError(error: any): { message: string; actionable: strin
 }
 
 // Get validation-specific error details
-function getValidationSpecificError(error: any): { message: string; actionable: string } | null {
-  const errorMessage = error.message?.toLowerCase() || '';
-  const field = error.field || '';
+function getValidationSpecificError(error: unknown): { message: string; actionable: string } | null {
+  const errorObj = error as Record<string, unknown>;
+  const errorMessage = (errorObj.message ? String(errorObj.message) : '').toLowerCase();
+  const field = errorObj.field ? String(errorObj.field) : '';
 
   if (field === 'name' || errorMessage.includes('name')) {
     return {
@@ -327,7 +334,7 @@ export async function retryOperation<T>(
   operation: () => Promise<T>,
   options: RetryOptions = { maxAttempts: 3, delay: 1000, backoff: true }
 ): Promise<T> {
-  let lastError: any;
+  let lastError: unknown;
   
   for (let attempt = 1; attempt <= options.maxAttempts; attempt++) {
     try {
@@ -357,30 +364,32 @@ export async function retryOperation<T>(
 }
 
 // Handle API errors specifically
-export function handleApiError(error: any, context?: string): ErrorInfo {
+export function handleApiError(error: unknown, context?: string): ErrorInfo {
   // Extract error details from API response
   let errorDetails = error;
   
-  if (error.response?.data) {
-    errorDetails = error.response.data;
-  } else if (error.data) {
-    errorDetails = error.data;
+  const errorObj = error as Record<string, unknown>;
+  if (errorObj.response && typeof errorObj.response === 'object' && 'data' in errorObj.response) {
+    errorDetails = (errorObj.response as Record<string, unknown>).data;
+  } else if (errorObj.data) {
+    errorDetails = errorObj.data;
   }
 
   return createErrorInfo(errorDetails, context);
 }
 
 // Handle location permission errors
-export function handleLocationError(error: any): ErrorInfo {
+export function handleLocationError(error: unknown): ErrorInfo {
   const errorInfo = createErrorInfo(error, 'location');
   
-  if (error.name === 'NotAllowedError') {
+  const errorObj = error as Record<string, unknown>;
+  if (errorObj.name === 'NotAllowedError') {
     errorInfo.userMessage = 'Location access is required to find nearby workout partners.';
     errorInfo.actionable = 'Please enable location access in your browser settings and refresh the page.';
-  } else if (error.name === 'PositionUnavailableError') {
+  } else if (errorObj.name === 'PositionUnavailableError') {
     errorInfo.userMessage = 'Unable to determine your location.';
     errorInfo.actionable = 'Make sure you have a good internet connection and try again.';
-  } else if (error.name === 'TimeoutError') {
+  } else if (errorObj.name === 'TimeoutError') {
     errorInfo.userMessage = 'Location request timed out.';
     errorInfo.actionable = 'Please try again or enter your location manually.';
   }
@@ -389,10 +398,11 @@ export function handleLocationError(error: any): ErrorInfo {
 }
 
 // Handle notification permission errors
-export function handleNotificationError(error: any): ErrorInfo {
+export function handleNotificationError(error: unknown): ErrorInfo {
   const errorInfo = createErrorInfo(error, 'notifications');
   
-  if (error.name === 'NotAllowedError') {
+  const errorObj = error as Record<string, unknown>;
+  if (errorObj.name === 'NotAllowedError') {
     errorInfo.userMessage = 'Notification permission is required for workout reminders.';
     errorInfo.actionable = 'Please enable notifications in your browser settings to receive workout updates.';
   }

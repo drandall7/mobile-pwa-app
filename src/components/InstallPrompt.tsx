@@ -27,7 +27,7 @@ export default function InstallPrompt({ onInstall, onDismiss, children }: Instal
   const checkInstallationStatus = useCallback(() => {
     // Check if running as standalone (installed)
     if (window.matchMedia('(display-mode: standalone)').matches || 
-        (window.navigator as any).standalone === true) {
+        (window.navigator as Navigator & { standalone?: boolean }).standalone === true) {
       setIsInstalled(true);
       return true;
     }
@@ -136,10 +136,10 @@ export default function InstallPrompt({ onInstall, onDismiss, children }: Instal
 
   // Expose trigger function globally for manual use
   useEffect(() => {
-    (window as any).triggerInstallPrompt = triggerInstallPrompt;
+    (window as Window & { triggerInstallPrompt?: () => void }).triggerInstallPrompt = triggerInstallPrompt;
     
     return () => {
-      delete (window as any).triggerInstallPrompt;
+      delete (window as Window & { triggerInstallPrompt?: () => void }).triggerInstallPrompt;
     };
   }, [triggerInstallPrompt]);
 
@@ -229,7 +229,7 @@ export default function InstallPrompt({ onInstall, onDismiss, children }: Instal
             {navigator.userAgent.includes('iPhone') || navigator.userAgent.includes('iPad') ? (
               <div className="mt-4 p-3 bg-gray-700/50 rounded-lg">
                 <p className="text-gray-300 text-xs text-center">
-                  Tap the share button <span className="inline-block w-4 h-4 bg-gray-400 rounded mx-1"></span> and select "Add to Home Screen"
+                  Tap the share button <span className="inline-block w-4 h-4 bg-gray-400 rounded mx-1"></span> and select &quot;Add to Home Screen&quot;
                 </p>
               </div>
             ) : null}
@@ -252,7 +252,7 @@ export function useInstallPrompt() {
     const checkAvailability = () => {
       // Check if running as standalone (installed)
       const installed = window.matchMedia('(display-mode: standalone)').matches || 
-                       (window.navigator as any).standalone === true;
+                       (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
       setIsInstalled(installed);
 
       // Check if beforeinstallprompt is supported
@@ -281,8 +281,8 @@ export function useInstallPrompt() {
   }, []);
 
   const triggerInstall = useCallback(() => {
-    if ((window as any).triggerInstallPrompt) {
-      (window as any).triggerInstallPrompt();
+    if ((window as Window & { triggerInstallPrompt?: () => void }).triggerInstallPrompt) {
+      (window as Window & { triggerInstallPrompt?: () => void }).triggerInstallPrompt();
     }
   }, []);
 
