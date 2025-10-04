@@ -102,8 +102,9 @@ export default function Home() {
               className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-full transition-colors duration-200 transform hover:scale-105 active:scale-95"
               onClick={() => {
                 // Trigger the install prompt via the global function exposed by InstallPrompt component
-                if ((window as Window & { triggerInstallPrompt?: () => void }).triggerInstallPrompt) {
-                  (window as Window & { triggerInstallPrompt?: () => void }).triggerInstallPrompt();
+                const windowWithPrompt = window as Window & { triggerInstallPrompt?: () => void };
+                if (windowWithPrompt.triggerInstallPrompt) {
+                  windowWithPrompt.triggerInstallPrompt();
                 }
               }}
             >
