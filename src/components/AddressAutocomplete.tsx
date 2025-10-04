@@ -67,16 +67,26 @@ export default function AddressAutocomplete({
       }
     };
 
-    if (process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY) {
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY;
+    
+    if (apiKey && apiKey !== 'your_google_places_api_key_here') {
       initGooglePlaces();
     } else {
-      setError('Google Places API key not configured');
+      setError('Address autocomplete will be available after API key setup');
     }
   }, []);
 
   // Debounced search function
   const searchAddresses = useCallback(async (input: string) => {
     if (!input.trim() || !autocompleteServiceRef.current) {
+      setSuggestions([]);
+      setIsOpen(false);
+      return;
+    }
+
+    // Don't search if API key is not configured
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY;
+    if (!apiKey || apiKey === 'your_google_places_api_key_here') {
       setSuggestions([]);
       setIsOpen(false);
       return;
@@ -223,6 +233,12 @@ export default function AddressAutocomplete({
     };
   }, []);
 
+  // Check if API key is configured
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY;
+  const isApiConfigured = apiKey && apiKey !== 'your_google_places_api_key_here';
+  
+  const inputPlaceholder = isApiConfigured ? placeholder : 'Address autocomplete coming soon...';
+
   return (
     <div className="relative">
       {/* Input Field */}
@@ -234,9 +250,9 @@ export default function AddressAutocomplete({
         onKeyDown={handleKeyDown}
         onFocus={handleFocus}
         onBlur={handleBlur}
-        placeholder={placeholder}
-        disabled={disabled}
-        className={`w-full h-12 px-4 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 ${className}`}
+        placeholder={inputPlaceholder}
+        disabled={disabled || !isApiConfigured}
+        className={`w-full h-12 px-4 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 ${!isApiConfigured ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
       />
 
       {/* Loading Indicator */}
