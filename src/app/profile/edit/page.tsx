@@ -74,10 +74,16 @@ export default function ProfileEditPage() {
 
       // Set initial location data
       if (user.home_location_name) {
+        // Convert GeoPoint to { latitude, longitude } format
+        const coordinates = user.home_location_coords ? {
+          latitude: user.home_location_coords.coordinates[1], // PostGIS stores as [longitude, latitude]
+          longitude: user.home_location_coords.coordinates[0]
+        } : null;
+
         setLocationData({
           state: LocationState.SUCCESS,
           name: user.home_location_name,
-          coordinates: user.home_location_coords,
+          coordinates,
           error: null,
         });
       }
