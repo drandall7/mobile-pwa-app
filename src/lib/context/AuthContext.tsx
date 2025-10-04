@@ -29,30 +29,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
-  // Check for existing session and fetch user profile
-  const checkSession = useCallback(async () => {
-    try {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error) {
-        console.error('Session check error:', error);
-        setUser(null);
-        return;
-      }
-
-      if (session?.user) {
-        await fetchUserProfile(session.user.id);
-      } else {
-        setUser(null);
-      }
-    } catch (error) {
-      console.error('Session check error:', error);
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [supabase, fetchUserProfile]);
-
   // Fetch user profile from users table
   const fetchUserProfile = useCallback(async (userId: string) => {
     try {
@@ -76,6 +52,30 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(null);
     }
   }, [supabase]);
+
+  // Check for existing session and fetch user profile
+  const checkSession = useCallback(async () => {
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('Session check error:', error);
+        setUser(null);
+        return;
+      }
+
+      if (session?.user) {
+        await fetchUserProfile(session.user.id);
+      } else {
+        setUser(null);
+      }
+    } catch (error) {
+      console.error('Session check error:', error);
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [supabase, fetchUserProfile]);
 
   // Sign in function
   const signIn = async (phoneNumber: string, password: string) => {
