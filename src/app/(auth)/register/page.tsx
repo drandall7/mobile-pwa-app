@@ -12,6 +12,7 @@ import {
   validateEmail, 
   validateName 
 } from '@/lib/utils/validation';
+import { createErrorInfo, displayError, ErrorInfo } from '@/lib/utils/errors';
 
 interface FormData {
   countryCode: string;
@@ -45,6 +46,7 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string>('');
   const [passwordStrength, setPasswordStrength] = useState(0);
+  const [errorInfo, setErrorInfo] = useState<ErrorInfo | null>(null);
 
   // Calculate password strength
   const calculatePasswordStrength = (password: string) => {
@@ -183,7 +185,14 @@ export default function RegisterPage() {
       router.push('/profile-setup');
     } catch (error) {
       console.error('Registration error:', error);
-      setSubmitError(error instanceof Error ? error.message : 'Registration failed. Please try again.');
+      
+      // Use comprehensive error handling
+      const errorDetails = createErrorInfo(error, 'registration');
+      setErrorInfo(errorDetails);
+      setSubmitError(displayError(errorDetails));
+      
+      // Clear any field-specific errors when we have a general error
+      setErrors({});
     } finally {
       setIsLoading(false);
     }

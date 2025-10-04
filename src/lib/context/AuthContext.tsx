@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { User } from '@/types/database';
+import { createErrorInfo, displayError } from '@/lib/utils/errors';
 import { formatPhoneNumber } from '@/lib/utils/validation';
 
 // Auth context type
@@ -108,7 +109,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await supabase.auth.refreshSession();
     } catch (error) {
       console.error('Sign in error:', error);
-      throw error;
+      
+      // Use comprehensive error handling
+      const errorDetails = createErrorInfo(error, 'auth-signin');
+      throw new Error(displayError(errorDetails));
     } finally {
       setLoading(false);
     }
@@ -151,7 +155,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Note: We're bypassing Supabase Auth, so no session refresh needed
     } catch (error) {
       console.error('Sign up error:', error);
-      throw error;
+      
+      // Use comprehensive error handling
+      const errorDetails = createErrorInfo(error, 'auth-signup');
+      throw new Error(displayError(errorDetails));
     } finally {
       setLoading(false);
     }

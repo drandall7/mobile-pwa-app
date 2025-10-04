@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/context/AuthContext';
 import { LocationService } from '@/lib/services/location';
 import { formatPhoneForDisplay } from '@/lib/utils/phone';
 import { validateName, validateEmail } from '@/lib/utils/validation';
+import { createErrorInfo, displayError, handleLocationError, ErrorInfo } from '@/lib/utils/errors';
 
 // Location detection states
 enum LocationState {
@@ -54,6 +55,7 @@ export default function ProfileEditPage() {
   });
 
   const [locationUpdated, setLocationUpdated] = useState(false);
+  const [errorInfo, setErrorInfo] = useState<ErrorInfo | null>(null);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -162,12 +164,14 @@ export default function ProfileEditPage() {
           error: result.error || 'Failed to detect location',
         });
       }
-    } catch {
+    } catch (error) {
+      // Use comprehensive location error handling
+      const locationErrorInfo = handleLocationError(error);
       setLocationData({
         state: LocationState.ERROR,
         name: null,
         coordinates: null,
-        error: 'An unexpected error occurred',
+        error: displayError(locationErrorInfo),
       });
     }
   };
@@ -219,7 +223,11 @@ export default function ProfileEditPage() {
       router.push('/profile');
     } catch (error) {
       console.error('Profile update error:', error);
-      setSubmitError('Failed to save changes. Please try again.');
+      
+      // Use comprehensive error handling
+      const errorDetails = createErrorInfo(error, 'profile-edit');
+      setErrorInfo(errorDetails);
+      setSubmitError(displayError(errorDetails));
     } finally {
       setIsSubmitting(false);
     }

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/context/AuthContext';
 import { LocationService } from '@/lib/services/location';
+import { createErrorInfo, displayError, handleLocationError, ErrorInfo } from '@/lib/utils/errors';
 
 // Location detection states
 enum LocationState {
@@ -54,6 +55,7 @@ export default function ProfileSetupPage() {
   const [showManualInput, setShowManualInput] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string>('');
+  const [errorInfo, setErrorInfo] = useState<ErrorInfo | null>(null);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -112,12 +114,14 @@ export default function ProfileSetupPage() {
           error: result.error || 'Failed to detect location',
         });
       }
-    } catch {
+    } catch (error) {
+      // Use comprehensive location error handling
+      const locationErrorInfo = handleLocationError(error);
       setLocationData({
         state: LocationState.ERROR,
         name: null,
         coordinates: null,
-        error: 'An unexpected error occurred',
+        error: displayError(locationErrorInfo),
       });
     }
   };
@@ -228,7 +232,11 @@ export default function ProfileSetupPage() {
       router.push('/feed');
     } catch (error) {
       console.error('Profile setup error:', error);
-      setSubmitError('Failed to complete setup. Please try again.');
+      
+      // Use comprehensive error handling
+      const errorDetails = createErrorInfo(error, 'profile-setup');
+      setErrorInfo(errorDetails);
+      setSubmitError(displayError(errorDetails));
     } finally {
       setIsSubmitting(false);
     }

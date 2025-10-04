@@ -8,8 +8,9 @@ import {
 } from '@/lib/utils/phone';
 import { 
   validatePhoneNumber, 
-  validatePassword 
+  validatePassword
 } from '@/lib/utils/validation';
+import { createErrorInfo, displayError, ErrorInfo } from '@/lib/utils/errors';
 
 interface FormData {
   countryCode: string;
@@ -36,6 +37,7 @@ export default function LoginPage() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string>('');
+  const [errorInfo, setErrorInfo] = useState<ErrorInfo | null>(null);
 
   // Handle input changes
   const handleInputChange = (field: keyof FormData, value: string) => {
@@ -133,7 +135,14 @@ export default function LoginPage() {
       router.push('/feed');
     } catch (error) {
       console.error('Login error:', error);
-      setSubmitError('Invalid phone number or password');
+      
+      // Use comprehensive error handling
+      const errorDetails = createErrorInfo(error, 'login');
+      setErrorInfo(errorDetails);
+      setSubmitError(displayError(errorDetails));
+      
+      // Clear any field-specific errors when we have a general error
+      setErrors({});
     } finally {
       setIsLoading(false);
     }
