@@ -8,7 +8,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 import { Header } from '@/components/Header';
 import { FeatureCard } from '@/components/FeatureCard';
-import { InstallPrompt } from '@/components/InstallPrompt';
+import InstallPrompt from '@/components/InstallPrompt';
 // Removed old Auth component import
 import { UserProfile } from '@/components/UserProfile';
 import { ConnectionTest } from '@/components/ConnectionTest';
