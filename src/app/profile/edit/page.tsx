@@ -126,16 +126,16 @@ export default function ProfileEditPage() {
     const errors: FormErrors = {};
 
     // Validate name
-    const nameError = validateName(formData.name);
-    if (nameError) {
-      errors.name = nameError;
+    const nameValidation = validateName(formData.name);
+    if (!nameValidation.valid) {
+      errors.name = nameValidation.message;
     }
 
     // Validate email if provided
     if (formData.email.trim()) {
-      const emailError = validateEmail(formData.email.trim());
-      if (emailError) {
-        errors.email = emailError;
+      const emailValidation = validateEmail(formData.email.trim());
+      if (!emailValidation.valid) {
+        errors.email = emailValidation.message;
       }
     }
 
