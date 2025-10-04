@@ -51,7 +51,7 @@ export default function AddressAutocomplete({
           libraries: ['places']
         });
 
-        await loader.loadLibrary('places');
+        await loader.importLibrary('places');
         
         // Initialize services
         autocompleteServiceRef.current = new google.maps.places.AutocompleteService();
