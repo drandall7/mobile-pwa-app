@@ -48,7 +48,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // Create user profile directly (bypassing Supabase Auth for now)
-    const userProfile: UserInsert = {
+    const userProfile: any = {
       id: crypto.randomUUID(), // Generate a UUID
       phone_number: normalizedPhone,
       email: email?.trim() || null,
@@ -58,6 +58,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       pace_range_max: null,
       home_location_coords: null,
       home_location_name: null,
+      password_hash: password, // Store password for demo (use proper hashing in production)
     };
 
     const { data: insertData, error: profileError } = await supabase

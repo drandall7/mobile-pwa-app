@@ -84,7 +84,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       
       const formattedPhone = formatPhoneNumber(phoneNumber);
       
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch('/api/auth/login-direct', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -146,8 +146,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Update user state
       setUser(data.user);
       
-      // Refresh the session
-      await supabase.auth.refreshSession();
+      // Note: We're bypassing Supabase Auth, so no session refresh needed
     } catch (error) {
       console.error('Sign up error:', error);
       throw error;
