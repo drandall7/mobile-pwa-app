@@ -199,7 +199,7 @@ export default function ProfileSetupPage() {
             Welcome {user.name}!
           </h1>
           <p className="text-gray-300 text-base leading-relaxed">
-            Let's set up your profile to connect with workout buddies
+            Let&apos;s set up your profile to connect with workout buddies
           </p>
         </div>
 

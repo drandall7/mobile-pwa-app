@@ -51,7 +51,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } finally {
       setLoading(false);
     }
-  }, [supabase]);
+  }, [supabase, fetchUserProfile]);
 
   // Fetch user profile from users table
   const fetchUserProfile = useCallback(async (userId: string) => {
@@ -215,7 +215,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     );
 
     return () => subscription.unsubscribe();
-  }, [checkSession, fetchUserProfile]);
+  }, [checkSession, fetchUserProfile, supabase.auth]);
 
   const value: AuthContextType = {
     user,

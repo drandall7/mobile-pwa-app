@@ -70,7 +70,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     let body: LoginRequest;
     try {
       body = await request.json();
-    } catch (error) {
+    } catch {
       return NextResponse.json<ErrorResponse>(
         { 
           error: 'Invalid JSON in request body',
