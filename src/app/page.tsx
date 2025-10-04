@@ -1,11 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-
-interface BeforeInstallPromptEvent extends Event {
-  prompt(): Promise<void>;
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
-}
+import { useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { FeatureCard } from '@/components/FeatureCard';
 import InstallPrompt from '@/components/InstallPrompt';
@@ -18,22 +13,8 @@ import { useAuth } from '@/lib/context/AuthContext';
 import { useRouter } from 'next/navigation';
 
 export default function Home() {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const { user, loading } = useAuth();
   const router = useRouter();
-
-  useEffect(() => {
-    const handler = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setShowInstallPrompt(true);
-    };
-
-    window.addEventListener('beforeinstallprompt', handler);
-
-    return () => window.removeEventListener('beforeinstallprompt', handler);
-  }, []);
 
   const features = [
     {
@@ -92,12 +73,7 @@ export default function Home() {
             A modern Progressive Web App built with Next.js 14, TypeScript, and Tailwind CSS
           </p>
           
-          {showInstallPrompt && (
-            <InstallPrompt
-              deferredPrompt={deferredPrompt}
-              onClose={() => setShowInstallPrompt(false)}
-            />
-          )}
+          <InstallPrompt />
         </div>
 
         {/* Connection Test & User Profile Section */}
@@ -125,12 +101,9 @@ export default function Home() {
             <button
               className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-full transition-colors duration-200 transform hover:scale-105 active:scale-95"
               onClick={() => {
-                if (deferredPrompt) {
-                  deferredPrompt.prompt();
-                  deferredPrompt.userChoice.then(() => {
-                    setDeferredPrompt(null);
-                    setShowInstallPrompt(false);
-                  });
+                // Trigger the install prompt via the global function exposed by InstallPrompt component
+                if ((window as Window & { triggerInstallPrompt?: () => void }).triggerInstallPrompt) {
+                  (window as Window & { triggerInstallPrompt?: () => void }).triggerInstallPrompt();
                 }
               }}
             >
