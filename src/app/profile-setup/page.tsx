@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/context/AuthContext';
 import { LocationService } from '@/lib/services/location';
-import AddressAutocomplete from '@/components/AddressAutocomplete';
 
 // Location detection states
 enum LocationState {
@@ -130,17 +129,17 @@ export default function ProfileSetupPage() {
     }));
   };
 
-  const handleManualAddressSelect = (address: string, placeId: string, coordinates?: { lat: number; lng: number }) => {
+  const handleManualAddressSelect = (address: string) => {
     setManualLocationData({
       address,
-      coordinates: coordinates ? { latitude: coordinates.lat, longitude: coordinates.lng } : null
+      coordinates: null // No coordinates for manual input
     });
     
     // Update the main location data to reflect manual input
     setLocationData({
       state: LocationState.SUCCESS,
       name: address,
-      coordinates: coordinates ? { latitude: coordinates.lat, longitude: coordinates.lng } : null,
+      coordinates: null, // No coordinates for manual input
       error: null,
     });
   };
@@ -196,25 +195,30 @@ export default function ProfileSetupPage() {
 
       // Update location if detected (either auto or manual)
       const finalLocation = locationData.coordinates ? locationData : 
-                           (manualLocationData.coordinates ? {
+                           (manualLocationData.address ? {
                              state: LocationState.SUCCESS,
                              name: manualLocationData.address,
-                             coordinates: manualLocationData.coordinates,
+                             coordinates: null,
                              error: null
                            } : null);
 
-      if (finalLocation?.coordinates) {
-        await fetch('/api/profile/location', {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            latitude: finalLocation.coordinates.latitude,
-            longitude: finalLocation.coordinates.longitude,
-            locationName: finalLocation.name || 'Unknown Location',
-          }),
-        });
+      if (finalLocation?.name) {
+        // Only update location if we have coordinates (auto-detection)
+        if (finalLocation.coordinates) {
+          await fetch('/api/profile/location', {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              latitude: finalLocation.coordinates.latitude,
+              longitude: finalLocation.coordinates.longitude,
+              locationName: finalLocation.name,
+            }),
+          });
+        }
+        // For manual addresses without coordinates, we'll just store the address name
+        // You can add a separate API endpoint later to store just the address string
       }
 
       // Refresh user data
@@ -341,16 +345,16 @@ export default function ProfileSetupPage() {
                 <label className="block text-white font-medium text-sm">
                   Enter your address
                 </label>
-                <AddressAutocomplete
+                <input
+                  type="text"
                   value={manualLocationData.address}
-                  onChange={handleManualAddressChange}
-                  onSelect={handleManualAddressSelect}
-                  placeholder="Start typing your address..."
-                  className="mt-2"
+                  onChange={(e) => handleManualAddressChange(e.target.value)}
+                  placeholder="Enter your full address..."
+                  className="w-full h-12 px-4 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300 mt-2"
                 />
                 {manualLocationData.address && (
                   <p className="text-green-400 text-sm mt-2">
-                    ✓ Address selected: {manualLocationData.address}
+                    ✓ Address entered: {manualLocationData.address}
                   </p>
                 )}
               </div>
