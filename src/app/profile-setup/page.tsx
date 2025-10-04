@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/context/AuthContext';
 import { LocationService } from '@/lib/services/location';
+import AddressAutocomplete from '@/components/AddressAutocomplete';
 
 // Location detection states
 enum LocationState {
@@ -25,6 +26,11 @@ interface LocationData {
   error: string | null;
 }
 
+interface ManualLocationData {
+  address: string;
+  coordinates: { latitude: number; longitude: number } | null;
+}
+
 export default function ProfileSetupPage() {
   const { user, loading, refreshUser } = useAuth();
   const router = useRouter();
@@ -41,6 +47,12 @@ export default function ProfileSetupPage() {
     error: null,
   });
 
+  const [manualLocationData, setManualLocationData] = useState<ManualLocationData>({
+    address: '',
+    coordinates: null,
+  });
+
+  const [showManualInput, setShowManualInput] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string>('');
 
@@ -91,6 +103,8 @@ export default function ProfileSetupPage() {
           coordinates: result.data.coordinates,
           error: null,
         });
+        // Hide manual input when auto-detection succeeds
+        setShowManualInput(false);
       } else {
         setLocationData({
           state: LocationState.ERROR,
@@ -106,6 +120,36 @@ export default function ProfileSetupPage() {
         coordinates: null,
         error: 'An unexpected error occurred',
       });
+    }
+  };
+
+  const handleManualAddressChange = (address: string) => {
+    setManualLocationData(prev => ({
+      ...prev,
+      address
+    }));
+  };
+
+  const handleManualAddressSelect = (address: string, placeId: string, coordinates?: { lat: number; lng: number }) => {
+    setManualLocationData({
+      address,
+      coordinates: coordinates ? { latitude: coordinates.lat, longitude: coordinates.lng } : null
+    });
+    
+    // Update the main location data to reflect manual input
+    setLocationData({
+      state: LocationState.SUCCESS,
+      name: address,
+      coordinates: coordinates ? { latitude: coordinates.lat, longitude: coordinates.lng } : null,
+      error: null,
+    });
+  };
+
+  const toggleManualInput = () => {
+    setShowManualInput(!showManualInput);
+    if (!showManualInput) {
+      // Clear manual data when hiding
+      setManualLocationData({ address: '', coordinates: null });
     }
   };
 
@@ -150,17 +194,25 @@ export default function ProfileSetupPage() {
         throw new Error('Failed to update profile');
       }
 
-      // Update location if detected
-      if (locationData.coordinates) {
+      // Update location if detected (either auto or manual)
+      const finalLocation = locationData.coordinates ? locationData : 
+                           (manualLocationData.coordinates ? {
+                             state: LocationState.SUCCESS,
+                             name: manualLocationData.address,
+                             coordinates: manualLocationData.coordinates,
+                             error: null
+                           } : null);
+
+      if (finalLocation?.coordinates) {
         await fetch('/api/profile/location', {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            latitude: locationData.coordinates.latitude,
-            longitude: locationData.coordinates.longitude,
-            locationName: locationData.name || 'Unknown Location',
+            latitude: finalLocation.coordinates.latitude,
+            longitude: finalLocation.coordinates.longitude,
+            locationName: finalLocation.name || 'Unknown Location',
           }),
         });
       }
@@ -276,9 +328,33 @@ export default function ProfileSetupPage() {
               </p>
             )}
 
-            <p className="text-orange-500 text-sm mt-3 text-center cursor-pointer hover:underline">
+            <p 
+              className="text-orange-500 text-sm mt-3 text-center cursor-pointer hover:underline"
+              onClick={toggleManualInput}
+            >
               Or enter manually
             </p>
+
+            {/* Manual Address Input */}
+            {showManualInput && (
+              <div className="mt-4 space-y-2">
+                <label className="block text-white font-medium text-sm">
+                  Enter your address
+                </label>
+                <AddressAutocomplete
+                  value={manualLocationData.address}
+                  onChange={handleManualAddressChange}
+                  onSelect={handleManualAddressSelect}
+                  placeholder="Start typing your address..."
+                  className="mt-2"
+                />
+                {manualLocationData.address && (
+                  <p className="text-green-400 text-sm mt-2">
+                    ✓ Address selected: {manualLocationData.address}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Submit Error */}
