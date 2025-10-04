@@ -10,7 +10,7 @@ import {
   validatePhoneNumber, 
   validatePassword
 } from '@/lib/utils/validation';
-import { createErrorInfo, displayError, ErrorInfo } from '@/lib/utils/errors';
+import { createErrorInfo, displayError } from '@/lib/utils/errors';
 
 interface FormData {
   countryCode: string;
@@ -37,7 +37,6 @@ export default function LoginPage() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string>('');
-  const [errorInfo, setErrorInfo] = useState<ErrorInfo | null>(null);
 
   // Handle input changes
   const handleInputChange = (field: keyof FormData, value: string) => {
@@ -138,7 +137,6 @@ export default function LoginPage() {
       
       // Use comprehensive error handling
       const errorDetails = createErrorInfo(error, 'login');
-      setErrorInfo(errorDetails);
       setSubmitError(displayError(errorDetails));
       
       // Clear any field-specific errors when we have a general error

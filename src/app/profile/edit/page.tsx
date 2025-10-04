@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/context/AuthContext';
 import { LocationService } from '@/lib/services/location';
 import { formatPhoneForDisplay } from '@/lib/utils/phone';
 import { validateName, validateEmail } from '@/lib/utils/validation';
-import { createErrorInfo, displayError, handleLocationError, ErrorInfo } from '@/lib/utils/errors';
+import { createErrorInfo, displayError, handleLocationError } from '@/lib/utils/errors';
 
 // Location detection states
 enum LocationState {
@@ -55,7 +55,6 @@ export default function ProfileEditPage() {
   });
 
   const [locationUpdated, setLocationUpdated] = useState(false);
-  const [errorInfo, setErrorInfo] = useState<ErrorInfo | null>(null);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -134,7 +133,7 @@ export default function ProfileEditPage() {
     // Validate email if provided
     if (formData.email.trim()) {
       const emailValidation = validateEmail(formData.email.trim());
-      if (!emailValidation.valid) {
+      if (emailValidation && !emailValidation.valid) {
         errors.email = emailValidation.message;
       }
     }
@@ -232,7 +231,6 @@ export default function ProfileEditPage() {
       
       // Use comprehensive error handling
       const errorDetails = createErrorInfo(error, 'profile-edit');
-      setErrorInfo(errorDetails);
       setSubmitError(displayError(errorDetails));
     } finally {
       setIsSubmitting(false);

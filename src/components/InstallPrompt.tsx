@@ -281,8 +281,9 @@ export function useInstallPrompt() {
   }, []);
 
   const triggerInstall = useCallback(() => {
-    if ((window as Window & { triggerInstallPrompt?: () => void }).triggerInstallPrompt) {
-      (window as Window & { triggerInstallPrompt?: () => void }).triggerInstallPrompt();
+    const windowWithPrompt = window as Window & { triggerInstallPrompt?: () => void };
+    if (windowWithPrompt.triggerInstallPrompt) {
+      windowWithPrompt.triggerInstallPrompt();
     }
   }, []);
 
