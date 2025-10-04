@@ -27,7 +27,7 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
     let body: LocationUpdateRequest;
     try {
       body = await request.json();
-    } catch (error) {
+    } catch {
       return NextResponse.json<ErrorResponse>(
         { 
           error: 'Invalid JSON in request body',

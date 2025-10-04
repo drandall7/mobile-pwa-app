@@ -142,7 +142,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     try {
       body = await request.json();
       console.log('Request body parsed:', body);
-    } catch (error) {
+    } catch {
       return NextResponse.json<ErrorResponse>(
         { 
           error: 'Invalid JSON in request body',

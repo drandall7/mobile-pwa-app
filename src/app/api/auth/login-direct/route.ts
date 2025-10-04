@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { 
   isValidPhoneNumber, 
-  parsePhoneNumber,
-  type User 
+  parsePhoneNumber
 } from '@/types/database';
 
 // Direct login that works with database-only users
@@ -53,7 +52,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     
     // Check if user has a password stored (for demo purposes)
     // In production, you'd use proper password hashing
-    const storedPassword = (user as any).password_hash || user.password;
+    const storedPassword = (user as { password_hash?: string; password?: string }).password_hash || (user as { password_hash?: string; password?: string }).password;
     
     if (!storedPassword) {
       // User was created via direct registration, set a default password

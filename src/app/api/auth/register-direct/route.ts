@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { 
   isValidPhoneNumber, 
-  parsePhoneNumber,
-  type UserInsert 
+  parsePhoneNumber
 } from '@/types/database';
 
 // Temporary direct registration that bypasses Supabase Auth
@@ -48,7 +47,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // Create user profile directly (bypassing Supabase Auth for now)
-    const userProfile: any = {
+    const userProfile: Record<string, unknown> = {
       id: crypto.randomUUID(), // Generate a UUID
       phone_number: normalizedPhone,
       email: email?.trim() || null,
@@ -61,7 +60,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       password_hash: password, // Store password for demo (use proper hashing in production)
     };
 
-    const { data: insertData, error: profileError } = await supabase
+    const { error: profileError } = await supabase
       .from('users')
       .insert(userProfile)
       .select();
