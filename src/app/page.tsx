@@ -9,17 +9,19 @@ interface BeforeInstallPromptEvent extends Event {
 import { Header } from '@/components/Header';
 import { FeatureCard } from '@/components/FeatureCard';
 import { InstallPrompt } from '@/components/InstallPrompt';
-import { Auth } from '@/components/Auth';
+// Removed old Auth component import
 import { UserProfile } from '@/components/UserProfile';
 import { ConnectionTest } from '@/components/ConnectionTest';
 import { PushNotifications } from '@/components/PushNotifications';
 import { PWAStatus } from '@/components/PWAStatus';
 import { useAuth } from '@/lib/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const { user, loading } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -56,6 +58,13 @@ export default function Home() {
     },
   ];
 
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [loading, user, router]);
+
   // Show loading state
   if (loading) {
     return (
@@ -65,9 +74,9 @@ export default function Home() {
     );
   }
 
-  // Show auth component if not authenticated
+  // Don't render anything if not authenticated (will redirect)
   if (!user) {
-    return <Auth />;
+    return null;
   }
 
   return (

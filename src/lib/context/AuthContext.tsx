@@ -121,7 +121,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       
       const formattedPhone = formatPhoneNumber(phoneNumber);
       
-      const response = await fetch('/api/auth/register', {
+      console.log('AuthContext: Making registration request to /api/auth/register');
+      console.log('AuthContext: Request data:', { phone_number: formattedPhone, name, email });
+      
+      const response = await fetch('/api/auth/register-direct', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

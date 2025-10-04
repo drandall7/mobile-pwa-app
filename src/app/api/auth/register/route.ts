@@ -134,11 +134,14 @@ function validateEmail(email: string | undefined): string | null {
 
 // Main handler
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  console.log('=== REGISTER API ROUTE CALLED ===');
   try {
     // Parse request body
+    console.log('Parsing request body...');
     let body: RegisterRequest;
     try {
       body = await request.json();
+      console.log('Request body parsed:', body);
     } catch (error) {
       return NextResponse.json<ErrorResponse>(
         { 
@@ -218,14 +221,19 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // Create Supabase client
+    console.log('Creating Supabase client...');
     const supabase = await createClient();
+    console.log('Supabase client created successfully');
 
     // Check if phone number already exists
+    console.log('Checking if phone number exists:', normalizedPhone);
     const { data: existingUser, error: checkError } = await supabase
       .from('users')
       .select('id, phone_number')
       .eq('phone_number', normalizedPhone)
       .single();
+    
+    console.log('Phone check result:', { existingUser, checkError });
 
     if (checkError && checkError.code !== 'PGRST116') {
       // PGRST116 is "not found" error, which is expected
@@ -298,6 +306,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     if (authError) {
       console.error('Auth signup error:', authError);
+      console.error('Auth error details:', {
+        message: authError.message,
+        status: authError.status,
+        name: authError.name
+      });
       
       // Handle specific auth errors
       if (authError.message.includes('already registered')) {
@@ -344,6 +357,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // Create user profile in users table
+    console.log('Creating user profile...');
     const userProfile: UserInsert = {
       id: authData.user.id,
       phone_number: normalizedPhone,
@@ -356,9 +370,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       home_location_name: null,
     };
 
-    const { error: profileError } = await supabase
+    console.log('User profile data:', userProfile);
+    const { data: insertData, error: profileError } = await supabase
       .from('users')
-      .insert(userProfile);
+      .insert(userProfile)
+      .select();
+    
+    console.log('Profile insert result:', { insertData, profileError });
 
     if (profileError) {
       console.error('Profile creation error:', profileError);
