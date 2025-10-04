@@ -178,6 +178,7 @@ export default function RegisterPage() {
         formData.email.trim() || undefined
       );
       
+      console.log('Registration successful, redirecting to profile setup...');
       // Redirect to profile setup on success
       router.push('/profile-setup');
     } catch (error) {

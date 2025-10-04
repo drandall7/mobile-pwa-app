@@ -138,6 +138,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       });
 
       const data = await response.json();
+      
+      console.log('Registration response:', { status: response.status, data });
 
       if (!response.ok) {
         throw new Error(data.error || 'Registration failed');
